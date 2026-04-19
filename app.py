@@ -88,7 +88,37 @@ st.caption("Milestone 1: ML Prediction  |  Milestone 2: Agentic Retention Strate
 # ---------------------------------------------------
 @st.cache_resource
 def load_model():
-    return joblib.load("pipeline.pkl")
+   try:
+        return joblib.load("pipeline.pkl")
+    except Exception:
+        import pandas as pd
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        from sklearn.compose import ColumnTransformer
+        from sklearn.linear_model import LogisticRegression
+
+        df = pd.read_csv("data.csv")
+
+        # Adjust "Churn" to whatever your target column is named
+        X = df.drop("Churn", axis=1)
+        y = df["Churn"]
+
+        num_cols = X.select_dtypes(include="number").columns.tolist()
+        cat_cols = X.select_dtypes(include="object").columns.tolist()
+
+        preprocessor = ColumnTransformer([
+            ("num", StandardScaler(), num_cols),
+            ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols)
+        ])
+
+        pipeline = Pipeline([
+            ("preprocessor", preprocessor),
+            ("classifier", LogisticRegression(max_iter=1000))
+        ])
+
+        pipeline.fit(X, y)
+        joblib.dump(pipeline, "pipeline.pkl")
+        return pipeline
 
 model = load_model()
 
