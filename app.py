@@ -15,12 +15,20 @@ import numpy as np
 from sklearn.metrics import roc_auc_score, confusion_matrix
 
 # ---------------------------------------------------
-# API Configuration  ← Loaded from .env file
+# API Configuration
+# Priority: Streamlit secrets (cloud) → .env (local)
 # ---------------------------------------------------
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not required on Streamlit Cloud
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+try:
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+except (FileNotFoundError, KeyError):
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
 # ---------------------------------------------------
